@@ -1,0 +1,143 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0">
+    <title>My places!</title>
+     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/remarkable/1.6.2/remarkable.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+    <script type="text/javascript">
+        var latlong="";
+        function radiochange()
+        {
+            if(document.getElementById("radius").checked == true)
+            {
+                if (!navigator.geolocation){
+                    alert("Geolocation is not supported by your browser");
+                    return;
+                }
+
+                function success(position) {
+                    latlong  = position.coords.latitude + "," + position.coords.longitude;
+                    alert(latlong);
+                    document.getElementById("latlong").value=latlong;
+                    console.log(document.getElementById("latlong").value);
+                };
+
+                function error() {
+                    alert("Unable to retrieve your location");
+                };
+                navigator.geolocation.getCurrentPosition(success, error);
+                document.getElementById("slider").disabled = false;
+                document.getElementById("placetext").disabled = true;
+            }
+            if(document.getElementById("place").checked == true)
+            {
+                document.getElementById("slider").disabled = true;
+                document.getElementById("placetext").disabled = false;
+            }
+        }
+    </script>
+<body>
+<div class="container-fluid">
+<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding-top:2%; background:rgba(0,0,0,0.5);">
+                <form action="/profiles" method="post">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                            <input type="radio" name="radio" id="radius" value="radius" onchange="radiochange();">Search by radius
+                            <input type="range" name="slider" id="slider" value="1000" min="0" max="50000" disabled>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                            <input type="radio" name="radio" id="place" value="place" onchange="radiochange();">Search by location
+                            <input type="text" name="placetext" id="placetext" disabled>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                            <input type="radio" name="radio" id="surprise" value="surprise" onchange="radiochange();">Surprise me!
+                        </div>
+                        <input type="hidden" name="latlong" id="latlong">
+                        <input type="submit" id="submit_button" value="Suggest!">
+                    </div>
+                    </form>
+                    
+</div>
+<div class="row">
+<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12"   style="overflow-y:auto; max-height: 100vh;">
+<% for(var i=0; i < raakhi.length; i++) { %>
+<div class="row <%= raakhi[i].name %>">
+    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" style="padding:10px 10px 10px 10px; height:30%;">
+    <img src="<%= raakhi[i].photo %>" alt="santa" style="width:100%; height:100%; border: 2px solid #000000;">
+    </div>
+    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+        <h2><%= raakhi[i].name %></h2>
+            <p><%= raakhi[i].address %></p>
+      
+    </div>
+</div>
+<% } %>
+
+<form action="/logout">
+    <input type="submit" value="llogout">
+</form>
+</div>
+<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" style="padding-top:10px;">
+<div id="map_canvas" style="width:100%; height:100%; border: 2px solid #3872ac;"></div>
+</div>
+</div>
+</div>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBPGbs8ooKB-rG58bcYVxyjPVXLswLCj4M"></script>
+ <script type="text/javascript">
+     var infos = [];
+      var loadMap=function() {
+          var data=<%- JSON.stringify(raakhi)%>;
+          //console.log(hi.length);
+          
+        map = new google.maps.Map(document.getElementById('map_canvas'));
+        var markerBounds=new google.maps.LatLngBounds();
+        //arr=[{lat: 34, lng: -118},{lat: 33, lng: -118},{lat:38,lng:-118},{lat:35,lng:-119}];
+
+        data.forEach(function(el,index){
+        console.log(index);
+        lat=el.lat;
+        lon=el.lon;
+        randomPoint=new google.maps.LatLng(lat,lon);
+        var marker = new google.maps.Marker({
+        map: map,
+        draggable: false,
+        animation: google.maps.Animation.DROP,
+        position: randomPoint
+  });
+        var content=el.name;
+        var infowindow=new google.maps.InfoWindow();
+        google.maps.event.addListener(marker,'click', (function(marker,content,infowindow){return function(){
+            closeInfos();
+          infowindow.setContent(content);
+          infowindow.open(map, marker);
+            infos[0]=infowindow;};
+        })(marker,content,infowindow));
+        //infowindow.open(map,marker);
+        markerBounds.extend(randomPoint);
+        });
+        map.fitBounds(markerBounds);  
+      };
+     
+      function closeInfos(){
+      if(infos.length > 0){
+ 
+      /* detach the info-window from the marker ... undocumented in the API docs */
+      infos[0].set("marker", null);
+ 
+      /* and close it */
+      infos[0].close();
+ 
+      /* blank the array */
+      infos.length = 0;
+   }
+      
+      }
+     window.onload= loadMap;
+</script>
+</body>

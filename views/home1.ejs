@@ -1,0 +1,75 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Playfair+Display' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="/css/mystyle.css">
+    <script type="text/javascript">
+        var slider = new Slider("#slider", {tooltip: 'always'});
+        var latlong="";
+        function radiochange()
+        {
+            if(document.getElementById("radius").checked == true)
+            {
+                document.getElementById("submit_button").disabled = true;
+                if (!navigator.geolocation){
+                    alert("Geolocation is not supported by your browser");
+                    return;
+                }
+
+                function success(position) {
+                    latlong  = position.coords.latitude + "," + position.coords.longitude;
+                    //alert(latlong);
+                    document.getElementById("latlong").value=latlong;
+                    document.getElementById("submit_button").disabled = false;
+                };
+
+                function error() {
+                    alert("Unable to retrieve your location");
+                };
+                navigator.geolocation.getCurrentPosition(success, error);
+                document.getElementById("slider").disabled = false;
+                document.getElementById("placetext").disabled = true;
+            }
+            if(document.getElementById("place").checked == true)
+            {
+                document.getElementById("slider").disabled = true;
+                document.getElementById("placetext").disabled = false;
+            }
+        }
+    </script>
+</head>
+<body background="/img/tourist.jpg" style="background-size:100% 100%; background-repeat:no-repeat;">
+    <h2 style="text-align:center;font-family: 'Playfair Display', serif;"><b>Picture Your Trip!</b></h2>
+    <div class="container container-table col-md-6" style="padding-top:10%; padding-left:10%; ">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="text-align:center;padding:5% 5% 5% 5%; background:rgba(0,0,0,0.5); border-radius:25px;">
+                <form action="/profiles" method="post">
+                    <div class="row" style="padding:5 5 5 5;">
+                        <div class="col-xs-12 col-md-6" style="color:white;">
+                            <input type="radio" name="radius" id="radius" value="0" onchange="radiochange();" style="margin-right:4px;">Search by radius
+                        </div>
+                        <div class="col-xs-12 col-md-6 col-md-offset-3">
+                            <input name="slider" id="slider" type="range" value="5000" min="0" max="50000" disabled/>
+                        </div>
+                    </div>
+                    <div class="row" style="padding:5 5 5 5;">
+                        <div class="col-xs-12 col-md-6" style="color:white;">
+                            <input type="radio" name="place" id="place" value="1" onchange="radiochange();" style="margin-right:4px;">Search by location
+                        </div>
+                        <div class="col-xs-12 col-md-6 col-md-offset-3">
+                            <input type="text" name="placetext" id="placetext" disabled>
+                        </div>
+                    </div>
+                    <div class="row" style="padding:5 5 5 5;">
+                        <input type="hidden" name="latlong" id="latlong">
+                        <input class="btn btn-primary" type="submit" id="submit_button" value="Suggest!">
+                    </div>
+                    </form>
+                    
+            </div>
+        </div>
+</body>
+</html>
